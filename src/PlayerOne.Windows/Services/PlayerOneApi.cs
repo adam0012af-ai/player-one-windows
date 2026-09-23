@@ -49,6 +49,11 @@ public sealed class PlayerOneApi {
     using var d=JsonDocument.Parse(raw);
     return d.RootElement.TryGetProperty("ok",out var ok)&&ok.GetBoolean();
   }
+  public async Task<JsonDocument> ProviderLoginAsync(DeviceAuth a,string code,string username,string password) =>
+    await PostAsync($"{a.Api}/api/provider/login",new {deviceId=a.DeviceId,deviceKey=a.DeviceKey,code=code.Trim(),username=username.Trim(),password});
+  public Task<JsonDocument> GetProviderAccessAsync(DeviceAuth a)=>GetAsync($"{a.Api}/api/provider/access?{AuthQuery(a)}");
+  public Task<JsonDocument> GetContentConfigAsync(DeviceAuth a,long id)=>GetAsync($"{a.Api}/api/device/content-config?{AuthQuery(a)}&playlistId={id}");
+
   public async Task DeletePlaylistAsync(DeviceAuth a,long id) {
     using var d=await PostAsync($"{a.Api}/api/device/playlists/delete",new {deviceId=a.DeviceId,deviceKey=a.DeviceKey,playlistId=id});
     if(!d.RootElement.TryGetProperty("ok",out var ok)||!ok.GetBoolean())throw new InvalidDataException("Playlist was not deleted");
