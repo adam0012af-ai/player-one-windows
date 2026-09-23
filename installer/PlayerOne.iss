@@ -1,14 +1,16 @@
 #define MyAppName "Player One"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppExeName "PlayerOne.exe"
 [Setup]
-AppId={{A4B7A45D-9A9C-49F5-A201-PLAYERONE2026}
+AppId={{B29E7898-0F74-4C2B-98EF-4D132C819026}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 DefaultDirName={autopf}\Player One
 DefaultGroupName=Player One
 OutputDir=..\artifacts\installer
 OutputBaseFilename=Player-One-Setup
+SetupIconFile=..\src\PlayerOne.Windows\Assets\player-one.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible
