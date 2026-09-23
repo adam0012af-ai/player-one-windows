@@ -1,0 +1,1 @@
+namespace PlayerOne.Windows;public partial class ProviderLoginDialog:System.Windows.Window{public string Code=>CodeBox.Text;public string Username=>UserBox.Text;public string Password=>PassBox.Password;public ProviderLoginDialog(){InitializeComponent();}void Go_Click(object s,System.Windows.RoutedEventArgs e){DialogResult=true;}}
