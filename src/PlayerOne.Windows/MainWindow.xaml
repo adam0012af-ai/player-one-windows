@@ -1,0 +1,14 @@
+<Window x:Class="PlayerOne.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Player One" Width="1280" Height="760" MinWidth="900" MinHeight="560" Background="#070B12" WindowStartupLocation="CenterScreen">
+<Grid Margin="32"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+<StackPanel><TextBlock Text="PLAYER ONE" Foreground="White" FontSize="32" FontWeight="Bold"/><TextBlock Text="Windows • Media Player" Foreground="#63D7C6" FontSize="14"/></StackPanel>
+<Grid Grid.Row="1"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="720">
+<TextBlock x:Name="StatusText" Text="Preparing this device…" Foreground="White" FontSize="26" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+<TextBlock x:Name="SubText" Text="Connecting to Player One…" Foreground="#9AA7B7" FontSize="15" Margin="0,12,0,28" HorizontalAlignment="Center"/>
+<Border Background="#101925" CornerRadius="18" Padding="24"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+<StackPanel><TextBlock Text="Device ID" Foreground="#8B98A8"/><TextBlock x:Name="DeviceIdText" Foreground="White" FontSize="19" FontWeight="Bold" Margin="0,7,20,0"/></StackPanel>
+<StackPanel Grid.Column="1"><TextBlock Text="Device Key" Foreground="#8B98A8"/><TextBlock x:Name="DeviceKeyText" Foreground="White" FontSize="19" FontWeight="Bold" Margin="0,7,0,0"/></StackPanel>
+</Grid></Border>
+<Button x:Name="ContinueButton" Content="Continue" IsEnabled="False" Click="Continue_Click" Height="48" Margin="0,24,0,0"/>
+</StackPanel></Grid>
+<TextBlock Grid.Row="2" Text="playeronetv.site" Foreground="#657384" HorizontalAlignment="Center"/>
+</Grid></Window>
