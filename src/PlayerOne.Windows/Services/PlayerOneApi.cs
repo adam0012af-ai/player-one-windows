@@ -9,12 +9,22 @@ public sealed class PlayerOneApi {
   readonly HttpClient http = new(){Timeout=TimeSpan.FromSeconds(25)};
 
   public async Task<DeviceAuth> BootstrapAsync() {
-    var response=await http.PostAsJsonAsync($"{DefaultApi}/api/device/bootstrap",new { hardwareId=DeviceIdentity.HardwareId(), label=DeviceIdentity.Label() });
-    response.EnsureSuccessStatusCode();
-    using var doc=JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-    var r=doc.RootElement;
-    string? S(string n)=>r.TryGetProperty(n,out var v)&&v.ValueKind!=JsonValueKind.Null?v.ToString():null;
-    return new(DefaultApi,S("deviceId")??throw new InvalidDataException("Missing Device ID"),S("deviceKey")??throw new InvalidDataException("Missing Device Key"),S("status"),S("trialExpiresAt"),S("expiresAt"));
+    using var req=JsonRequest(HttpMethod.Post,$"{DefaultApi}/api/device/bootstrap",new {
+      appCode="player-one",
+      hardwareId=DeviceIdentity.HardwareId(),
+      label=DeviceIdentity.Label()
+    });
+    using var response=await http.SendAsync(req);
+    var raw=await response.Content.ReadAsStringAsync();
+    if(!response.IsSuccessStatusCode)throw ApiError(raw,(int)response.StatusCode);
+    using var doc=JsonDocument.Parse(raw);
+    var root=doc.RootElement;
+    if(root.TryGetProperty("ok",out var ok)&&ok.ValueKind==JsonValueKind.False)throw ApiError(raw,(int)response.StatusCode);
+    if(!root.TryGetProperty("device",out var r)||r.ValueKind!=JsonValueKind.Object)throw new InvalidDataException("Device response missing");
+    string? S(string n)=>r.TryGetProperty(n,out var v)&&v.ValueKind!=JsonValueKind.Null?v.ToString().Trim():null;
+    var id=S("deviceId"); var key=S("deviceKey");
+    if(string.IsNullOrWhiteSpace(id)||string.IsNullOrWhiteSpace(key))throw new InvalidDataException("Invalid device response");
+    return new(DefaultApi,id,key,S("status"),S("trialExpiresAt"),S("expiresAt"));
   }
 
   string AuthQuery(DeviceAuth a)=>$"deviceId={Uri.EscapeDataString(a.DeviceId)}&deviceKey={Uri.EscapeDataString(a.DeviceKey)}";
