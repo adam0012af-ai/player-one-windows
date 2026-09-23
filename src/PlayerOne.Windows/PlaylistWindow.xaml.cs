@@ -1,6 +1,7 @@
 using System.Text.Json;using PlayerOne.Windows.Models;using PlayerOne.Windows.Services;namespace PlayerOne.Windows;
 public partial class PlaylistWindow:System.Windows.Window{readonly DeviceAuth auth;readonly PlayerOneApi api=new();public PlaylistWindow(DeviceAuth a){InitializeComponent();auth=a;Loaded+=async(_,__)=>await LoadAsync();}
 async Task LoadAsync(){using var d=await api.GetPlaylistsAsync(auth);var x=new List<DevicePlaylist>();if(d.RootElement.TryGetProperty("playlists",out var a))foreach(var p in a.EnumerateArray())x.Add(new(p.GetProperty("id").GetInt64(),p.TryGetProperty("name",out var n)?n.ToString():"Playlist",p.TryGetProperty("type",out var t)?t.ToString():"playlist",null,null));List.ItemsSource=x;}
+void Select_Click(object s,System.Windows.RoutedEventArgs e){if(List.SelectedItem is DevicePlaylist p){PlaylistSelectionStore.Save(p.Id);DialogResult=true;}}
 async void Refresh_Click(object s,System.Windows.RoutedEventArgs e)=>await LoadAsync();
 async void AddM3u_Click(object s,System.Windows.RoutedEventArgs e){var d=new PlaylistEditDialog("M3U");if(d.ShowDialog()==true){await api.AddM3uAsync(auth,d.PlaylistName,d.Url);await LoadAsync();}}
 async void AddXtream_Click(object s,System.Windows.RoutedEventArgs e){var d=new PlaylistEditDialog("Xtream");if(d.ShowDialog()==true){await api.AddXtreamAsync(auth,d.PlaylistName,d.Host,d.Username,d.Password);await LoadAsync();}}
