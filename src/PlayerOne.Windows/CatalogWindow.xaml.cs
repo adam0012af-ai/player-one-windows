@@ -4,5 +4,8 @@ async Task LoadAsync(){using var d=await api.GetPlaylistsAsync(auth);if(!d.RootE
 void Bind(){var gs=all.Select(x=>x.Group).Distinct().ToList();Groups.ItemsSource=new[]{"All"}.Concat(gs);Groups.SelectedIndex=0;Filter();}
 void Filter(){var g=Groups.SelectedItem?.ToString();var s=SearchBox.Text.Trim();Items.ItemsSource=all.Where(x=>(g=="All"||string.IsNullOrEmpty(g)||x.Group==g)&&(s.Length==0||x.Name.Contains(s,StringComparison.OrdinalIgnoreCase))).ToList();}
 void Group_Changed(object s,System.Windows.Controls.SelectionChangedEventArgs e)=>Filter();void Search_Changed(object s,System.Windows.Controls.TextChangedEventArgs e)=>Filter();
-void Item_DoubleClick(object s,System.Windows.Input.MouseButtonEventArgs e){if(Items.SelectedItem is not XtreamItem x)return;if(kind=="series"&&x.StreamUrl is null&&host is not null&&user is not null&&pass is not null)new SeriesWindow(auth,x,host,user,pass).Show();else if(x.StreamUrl is not null)new PlayerWindow(auth,x).Show();}
+void ToggleFavorite(XtreamItem x){PlayerStateStore.ToggleFavorite(auth,PlaylistSelectionStore.Load(),new(x.Kind,x.Id,x.Name,x.Group,x.Image,x.StreamUrl,DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));}
+protected override void OnKeyDown(System.Windows.Input.KeyEventArgs e){base.OnKeyDown(e);if(e.Key==System.Windows.Input.Key.F&&Items.SelectedItem is XtreamItem x)ToggleFavorite(x);else if(e.Key==System.Windows.Input.Key.Enter&&Items.SelectedItem is XtreamItem y)OpenItem(y);}
+void OpenItem(XtreamItem x){if(kind=="series"&&x.StreamUrl is null&&host is not null&&user is not null&&pass is not null)new SeriesWindow(auth,x,host,user,pass).Show();else if(x.StreamUrl is not null)new PlayerWindow(auth,x).Show();}
+void Item_DoubleClick(object s,System.Windows.Input.MouseButtonEventArgs e){if(Items.SelectedItem is XtreamItem x)OpenItem(x);}
 }
