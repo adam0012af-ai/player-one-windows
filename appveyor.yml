@@ -4,7 +4,10 @@ configuration: Release
 platform: Any CPU
 build_script:
 - cmd: dotnet restore PlayerOne.Windows.sln
-- cmd: dotnet publish src\PlayerOne.Windows\PlayerOne.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts\publish
+- cmd: dotnet build PlayerOne.Windows.sln -c Release --no-restore
+- cmd: dotnet publish src\PlayerOne.Windows\PlayerOne.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=None -o artifacts\publish
+after_build:
+- cmd: 7z a -tzip artifacts\Player-One-Windows-Portable.zip .\artifacts\publish\*
 artifacts:
-- path: artifacts\publish
-  name: PlayerOne-Windows-Publish
+- path: artifacts\Player-One-Windows-Portable.zip
+  name: Player-One-Windows-Portable
