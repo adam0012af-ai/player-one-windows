@@ -1,0 +1,10 @@
+version: 1.0.{build}
+image: Visual Studio 2022
+configuration: Release
+platform: Any CPU
+build_script:
+- cmd: dotnet restore PlayerOne.Windows.sln
+- cmd: dotnet publish src\PlayerOne.Windows\PlayerOne.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts\publish
+artifacts:
+- path: artifacts\publish
+  name: PlayerOne-Windows-Publish
