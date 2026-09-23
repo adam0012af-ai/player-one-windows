@@ -2,31 +2,41 @@
 
 Source baseline: Android branch `fix/codemagic-v120-focus-v121`.
 
-## Foundation
-- [x] Same API base: https://playeronetv.site
-- [x] Windows stable hardware identity and device label
-- [x] /api/device/bootstrap
-- [x] /api/devices/status
-- [x] /api/device/playlists
-- [x] /api/device/playlist-config
-- [x] Local device session persistence
-- [ ] Linked-device/account grouping verification against backend
+## Implemented foundation
+- [x] Same Player One API base and device bootstrap/status
+- [x] Stable Windows hardware identity (`windows_pc`)
+- [x] Device session persistence
+- [x] Playlist retrieval/configuration
+- [x] M3U + Xtream + Host Code/provider login
+- [x] Playlist add/delete and API update support
+- [x] Live / Movies / Series catalog parsing
+- [x] Search and category filtering
+- [x] Xtream series seasons/episodes
+- [x] Movie metadata/details
+- [x] Favorites state
+- [x] Continue Watching state and resume seek
+- [x] Fullscreen/aspect/seek/pause controls
+- [x] Windows compact always-on-top player behavior
+- [x] Live TS/HLS alternate-source fallback
+- [x] Auto reconnect preference
+- [x] Device Info/status/end-date screen
+- [x] Arabic/English preference foundation
+- [x] Audio/subtitle language preferences
+- [x] LibVLC Windows dependencies added for advanced media parity
+- [x] Update-check service foundation
 
-## Features that must be complete before Setup EXE
-- [ ] Playlist center: M3U, Xtream, host alias/code, add/edit/delete/select/sync
-- [ ] Home parity
-- [ ] Live browser/categories/search/favorites
-- [ ] Live player, mini/fullscreen, reconnect, channel overlay
-- [ ] Movies browser/categories/search/favorites
-- [ ] Series browser/seasons/episodes/search/favorites
-- [ ] Continue Watching and playback state
-- [ ] Audio tracks/subtitles/aspect controls
-- [ ] Background/minimize behavior appropriate for Windows
-- [ ] Settings, About/Info, device ID/key, subscription status/end date
-- [ ] Arabic/English and RTL/LTR
-- [ ] Cache/performance/error handling
-- [ ] Keyboard/remote navigation equivalents
-- [ ] Update flow
-- [ ] Final QA and AppVeyor installer build
+## Must still pass before final Setup EXE
+- [ ] Verify linked-device/account grouping behavior against production backend
+- [ ] Complete edit/select UX in Playlist Center
+- [ ] Replace WPF MediaElement playback surface with LibVLC implementation
+- [ ] Wire real audio-track selector
+- [ ] Wire real subtitle-track selector
+- [ ] Auto-next episodes
+- [ ] Complete Arabic strings + RTL on every screen
+- [ ] Live channel overlay / fast channel switching
+- [ ] Final visual polish and keyboard/remote focus QA
+- [ ] Compile successfully on Windows CI
+- [ ] Runtime smoke test on Windows 10/11
+- [ ] Build installer and final Player-One-Windows-Setup.zip
 
-No final Setup EXE should be produced until this checklist is completed and verified.
+Final Setup EXE is blocked until every item above is verified.
