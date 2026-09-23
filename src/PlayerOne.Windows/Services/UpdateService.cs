@@ -1,0 +1,3 @@
+using System.Text.Json;namespace PlayerOne.Windows.Services;
+public sealed record UpdateInfo(string Version,string? Url,string? Notes);
+public sealed class UpdateService{readonly HttpClient http=new(){Timeout=TimeSpan.FromSeconds(10)};public async Task<UpdateInfo?> CheckAsync(){try{using var d=JsonDocument.Parse(await http.GetStringAsync("https://playeronetv.site/api/windows/update"));var r=d.RootElement;if(!r.TryGetProperty("version",out var v))return null;return new(v.ToString(),r.TryGetProperty("url",out var u)?u.ToString():null,r.TryGetProperty("notes",out var n)?n.ToString():null);}catch{return null;}}}
