@@ -1,5 +1,6 @@
 using System.Text.Json;using PlayerOne.Windows.Models;using PlayerOne.Windows.Services;namespace PlayerOne.Windows;
 public partial class PlaylistWindow:System.Windows.Window{readonly DeviceAuth auth;readonly PlayerOneApi api=new();public PlaylistWindow(DeviceAuth a){InitializeComponent();auth=a;Loaded+=async(_,__)=>await LoadAsync();}
+void Back_Click(object s,RoutedEventArgs e)=>Close();
 async Task LoadAsync(){try{using var d=await api.GetPlaylistsAsync(auth);var x=new List<DevicePlaylist>();if(d.RootElement.TryGetProperty("playlists",out var a))foreach(var p in a.EnumerateArray())x.Add(new(p.GetProperty("id").GetInt64(),p.TryGetProperty("name",out var n)?n.ToString():"Playlist",p.TryGetProperty("type",out var t)?t.ToString():"playlist",null,null));List.ItemsSource=x;}catch(Exception ex){MessageBox.Show(ex.Message,"Player One");}}
 void Select_Click(object s,RoutedEventArgs e){if(List.SelectedItem is DevicePlaylist p){PlaylistSelectionStore.Save(p.Id);DialogResult=true;}}
 async void Refresh_Click(object s,RoutedEventArgs e)=>await LoadAsync();
