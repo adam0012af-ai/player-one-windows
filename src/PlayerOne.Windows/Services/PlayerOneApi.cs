@@ -12,7 +12,11 @@ public sealed class PlayerOneApi {
     using var req=JsonRequest(HttpMethod.Post,$"{DefaultApi}/api/device/bootstrap",new {
       appCode="player-one",
       hardwareId=DeviceIdentity.HardwareId(),
-      label=DeviceIdentity.Label()
+      label=DeviceIdentity.Label(),
+      deviceFamily="windows_pc",
+      deviceType="windows_pc",
+      platform="windows",
+      brand=DeviceIdentity.Brand()
     });
     using var response=await http.SendAsync(req);
     var raw=await response.Content.ReadAsStringAsync();
