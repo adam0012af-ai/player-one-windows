@@ -14,5 +14,5 @@ public partial class MainWindow : System.Windows.Window {
  void OpenCatalog(string kind){if(auth is null)return;new CatalogWindow(auth,kind).Show();}
  void Exit_Click(object s,System.Windows.RoutedEventArgs e)=>ConfirmExit();
  void Window_KeyDown(object s,System.Windows.Input.KeyEventArgs e){if(e.Key==System.Windows.Input.Key.Escape&&HomeView.Visibility==System.Windows.Visibility.Visible){ConfirmExit();e.Handled=true;}}
- void ConfirmExit(){var result=System.Windows.MessageBox.Show("Do you want to exit the app?","Exit Player One",System.Windows.MessageBoxButton.YesNo,System.Windows.MessageBoxImage.Question);if(result==System.Windows.MessageBoxResult.Yes)System.Windows.Application.Current.Shutdown();}
+ void ConfirmExit(){if(!PlayerSettings.Load().ConfirmExit){System.Windows.Application.Current.Shutdown();return;}var result=System.Windows.MessageBox.Show("Do you want to exit the app?","Exit Player One",System.Windows.MessageBoxButton.YesNo,System.Windows.MessageBoxImage.Question);if(result==System.Windows.MessageBoxResult.Yes)System.Windows.Application.Current.Shutdown();}
 }
