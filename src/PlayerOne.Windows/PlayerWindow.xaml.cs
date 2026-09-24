@@ -12,6 +12,7 @@ public partial class PlayerWindow:System.Windows.Window{
  void CycleSubtitle(){var s=PlayerSettings.Load();if(!s.SubtitlesEnabled){mp.SetSpu(-1);PlayerStatus.Text="Subtitles off";return;}var tracks=mp.SpuDescription?.ToList();if(tracks is null||tracks.Count==0){PlayerStatus.Text="No subtitles";return;}var ids=tracks.Select(x=>x.Id).ToList();var i=ids.IndexOf(mp.Spu);mp.SetSpu(ids[(i+1+ids.Count)%ids.Count]);PlayerStatus.Text="Subtitle track changed";}
  void Pause_Click(object s,RoutedEventArgs e){if(mp.IsPlaying)mp.Pause();else mp.Play();}
  void Back_Click(object s,RoutedEventArgs e)=>Seek(-10000);void Forward_Click(object s,RoutedEventArgs e)=>Seek(10000);void Seek(long d){if(item.Kind!="live"&&mp.Length>0)mp.Time=Math.Clamp(mp.Time+d,0,mp.Length);}
+ void Audio_Click(object s,RoutedEventArgs e)=>CycleAudio();void Subs_Click(object s,RoutedEventArgs e)=>CycleSubtitle();
  void Aspect_Click(object s,RoutedEventArgs e){aspect=(aspect+1)%3;mp.AspectRatio=aspect switch{0=>null,1=>"16:9",_=>"4:3"};PlayerStatus.Text=aspect switch{0=>"Auto aspect",1=>"16:9",_=>"4:3"};}
  void Compact_Click(object s,RoutedEventArgs e)=>ToggleCompact();void Full_Click(object s,RoutedEventArgs e)=>ToggleFull();
  void ToggleFull(){if(WindowStyle==WindowStyle.None){WindowStyle=WindowStyle.SingleBorderWindow;WindowState=WindowState.Normal;}else{WindowStyle=WindowStyle.None;WindowState=WindowState.Maximized;}}
