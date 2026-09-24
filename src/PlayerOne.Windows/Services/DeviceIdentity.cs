@@ -11,5 +11,6 @@ public static class DeviceIdentity {
     var hash = SHA256.HashData(Encoding.UTF8.GetBytes(raw));
     return "WIN-" + Convert.ToHexString(hash.AsSpan(0,12));
   }
+  public static string Brand() => Environment.MachineName;
   public static string Label() => $"windows_pc|{Environment.MachineName}|{System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}";
 }
