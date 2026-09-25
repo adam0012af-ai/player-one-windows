@@ -8,6 +8,9 @@ public partial class MainWindow : System.Windows.Window {
  async void Continue_Click(object s,System.Windows.RoutedEventArgs e){if(auth is null)return;BootstrapView.Visibility=System.Windows.Visibility.Collapsed;HomeView.Visibility=System.Windows.Visibility.Visible;await SyncPlaylistsAsync();}
  async Task SyncPlaylistsAsync(){if(auth is null)return;try{using var d=await api.GetPlaylistsAsync(auth);if(d.RootElement.TryGetProperty("playlists",out var a)){var ids=a.EnumerateArray().Select(p=>p.TryGetProperty("id",out var id)?id.GetInt64():0).Where(x=>x>0).ToList();var selected=PlaylistSelectionStore.Load();if(ids.Count>0&&(!selected.HasValue||!ids.Contains(selected.Value)))PlaylistSelectionStore.Save(ids[0]);}}catch{}}
  void Settings_Click(object s,System.Windows.RoutedEventArgs e){if(auth is null)return;new SettingsWindow(auth).ShowDialog();_=SyncPlaylistsAsync();}
+ void Library_Click(object s,System.Windows.RoutedEventArgs e){if(auth is null)return;new LibraryWindow(auth){Owner=this}.Show();}
+ void Playlists_Click(object s,System.Windows.RoutedEventArgs e){if(auth is null)return;new PlaylistWindow(auth){Owner=this}.ShowDialog();_=SyncPlaylistsAsync();}
+ void Info_Click(object s,System.Windows.RoutedEventArgs e){if(auth is null)return;new InfoWindow(auth){Owner=this}.ShowDialog();}
  void Live_Click(object s,System.Windows.RoutedEventArgs e){if(auth is null)return;new LiveWindow(auth).Show();}
  void Movies_Click(object s,System.Windows.RoutedEventArgs e)=>OpenCatalog("movie");
  void Series_Click(object s,System.Windows.RoutedEventArgs e)=>OpenCatalog("series");
