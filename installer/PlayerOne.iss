@@ -1,6 +1,7 @@
 #define MyAppName "Player One"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.2.0"
 #define MyAppExeName "PlayerOne.exe"
+
 [Setup]
 AppId={{B29E7898-0F74-4C2B-98EF-4D132C819026}
 AppName={#MyAppName}
@@ -16,12 +17,13 @@ SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 WizardStyle=modern
+
 [Files]
 Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
 [Icons]
-Name: "{autoprograms}\Player One"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\Player One"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-[Tasks]
-Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional icons:"
+Name: "{autoprograms}\Player One"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\Player One"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch Player One"; Flags: nowait postinstall skipifsilent
