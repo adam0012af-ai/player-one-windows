@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF>
     <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AssemblyName>PlayerOne</AssemblyName>
-    <RootNamespace>PlayerOne.Windows</RootNamespace><Version>1.1.0</Version>
+    <RootNamespace>PlayerOne.Windows</RootNamespace><Version>1.2.0</Version>
     <ApplicationIcon>Assets\player-one.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup><PackageReference Include="LibVLCSharp.WPF" Version="3.9.5" /><PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" /></ItemGroup>
