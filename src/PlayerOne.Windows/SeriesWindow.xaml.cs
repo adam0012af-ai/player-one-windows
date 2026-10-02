@@ -4,5 +4,5 @@ public SeriesWindow(DeviceAuth a,XtreamItem s,string h,string u,string p){Initia
 void Season_Changed(object s,System.Windows.Controls.SelectionChangedEventArgs e){if(Seasons.SelectedItem is int n){var visible=all.Where(x=>x.Season==n).OrderBy(x=>x.Episode).ToList();Episodes.ItemsSource=visible;SeasonLabel.Text=$"Season {n} • {visible.Count} episodes";}}
 void Episode_DoubleClick(object s,System.Windows.Input.MouseButtonEventArgs e){if(Episodes.SelectedItem is EpisodeItem ep)Play(ep);}
 void OnKey(object s,System.Windows.Input.KeyEventArgs e){if(e.Key==System.Windows.Input.Key.Enter&&Episodes.SelectedItem is EpisodeItem ep)Play(ep);else if(e.Key==System.Windows.Input.Key.Escape){Close();e.Handled=true;}}
-void Play(EpisodeItem ep){var index=all.FindIndex(x=>x.Id==ep.Id);var queue=all.Skip(index).Select(x=>new XtreamItem(x.Id,x.Title,series.Name,series.Image,x.StreamUrl,"series",0)).ToList();if(queue.Count>0)new PlayerWindow(auth,queue[0],queue).Show();}
+void Play(EpisodeItem ep){var index=all.FindIndex(x=>x.Id==ep.Id);var queue=all.Skip(index).Select(x=>new XtreamItem(x.Id,x.Title,series.Name,series.Image,x.StreamUrl,"series",0)).ToList();if(queue.Count>0)new PlayerWindow(auth,queue[0],queue){Owner=this}.Show();}
 }
