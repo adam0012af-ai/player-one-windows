@@ -1,0 +1,50 @@
+name: Windows 7 compatibility build
+
+on:
+  push:
+    branches:
+      - compat/windows7-codex-v1
+    paths:
+      - 'src/**'
+      - '.github/workflows/windows7-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install icon tool
+        shell: pwsh
+        run: |
+          choco install imagemagick -y --no-progress
+          $magick = (Get-Command magick.exe -ErrorAction SilentlyContinue).Source
+          if (-not $magick) {
+            $magick = Get-ChildItem "$env:ProgramFiles\ImageMagick-*\magick.exe" | Select-Object -First 1 -ExpandProperty FullName
+          }
+          & $magick "src\PlayerOne.Windows\Assets\player-one-icon.webp" -define icon:auto-resize=256,128,64,48,32,16 "src\PlayerOne.Windows\Assets\player-one.ico"
+
+      - name: Restore
+        run: dotnet restore src/PlayerOne.Windows/PlayerOne.Windows.csproj
+
+      - name: Build Windows 7 x64
+        run: dotnet build src/PlayerOne.Windows/PlayerOne.Windows.csproj -c Release --no-restore -p:PlatformTarget=x64
+
+      - name: Package portable
+        shell: pwsh
+        run: |
+          $src = "src\PlayerOne.Windows\bin\Release\net48"
+          if (!(Test-Path "$src\PlayerOne.exe")) { throw "PlayerOne.exe missing" }
+          New-Item -ItemType Directory -Force out | Out-Null
+          Compress-Archive -Path "$src\*" -DestinationPath "out\Player-One-Windows-7-x64.zip" -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Player-One-Windows-7-x64
+          path: out/Player-One-Windows-7-x64.zip
+          if-no-files-found: error
