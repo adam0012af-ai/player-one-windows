@@ -93,7 +93,7 @@ jobs:
           '@ | Set-Content -Path product.wxs -Encoding UTF8
 
           & "$wix\candle.exe" -arch x64 "-dSourceDir=$src" appfiles.wxs product.wxs
-          & "$wix\light.exe" -out "out\Player-One-Windows-7-x64.msi" appfiles.wixobj product.wixobj
+          & "$wix\light.exe" -sval -out "out\Player-One-Windows-7-x64.msi" appfiles.wixobj product.wixobj
           if (!(Test-Path "out\Player-One-Windows-7-x64.msi")) { throw "MSI was not created" }
 
       - uses: actions/upload-artifact@v4
