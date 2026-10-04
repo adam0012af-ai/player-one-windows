@@ -43,8 +43,67 @@ jobs:
           New-Item -ItemType Directory -Force out | Out-Null
           Compress-Archive -Path "$src\*" -DestinationPath "out\Player-One-Windows-7-x64.zip" -Force
 
+      - name: Install WiX 3
+        shell: pwsh
+        run: choco install wixtoolset -y --no-progress
+
+      - name: Build Windows 7 MSI
+        shell: pwsh
+        run: |
+          $wix = "${env:WIX}bin"
+          if (!(Test-Path "$wix\heat.exe")) {
+            $wix = Get-ChildItem "C:\Program Files (x86)\WiX Toolset*\bin" -Directory -ErrorAction SilentlyContinue |
+              Select-Object -First 1 -ExpandProperty FullName
+          }
+          if (!(Test-Path "$wix\heat.exe")) { throw "WiX 3 tools not found" }
+
+          $src = (Resolve-Path "src\PlayerOne.Windows\bin\Release\net48").Path
+          & "$wix\heat.exe" dir "$src" -cg AppFiles -dr INSTALLFOLDER -gg -scom -sreg -sfrag -srd -var var.SourceDir -out appfiles.wxs
+
+          @'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+            <Product Id="*" Name="Player One" Language="1033" Version="1.2.0" Manufacturer="T4K Studio" UpgradeCode="A1F1AE41-C45B-4EE2-9E57-6F784F877107">
+              <Package InstallerVersion="500" Compressed="yes" InstallScope="perUser" Platform="x64" />
+              <MajorUpgrade DowngradeErrorMessage="A newer version of Player One is already installed." />
+              <MediaTemplate EmbedCab="yes" />
+
+              <Directory Id="TARGETDIR" Name="SourceDir">
+                <Directory Id="LocalAppDataFolder">
+                  <Directory Id="ProgramsFolder" Name="Programs">
+                    <Directory Id="INSTALLFOLDER" Name="Player One">
+                      <Component Id="ShortcutComponent" Guid="*">
+                        <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="Player One" Target="[INSTALLFOLDER]PlayerOne.exe" WorkingDirectory="INSTALLFOLDER" />
+                        <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Player One" Target="[INSTALLFOLDER]PlayerOne.exe" WorkingDirectory="INSTALLFOLDER" />
+                        <RegistryValue Root="HKCU" Key="Software\T4K Studio\Player One" Name="InstalledWin7" Type="integer" Value="1" KeyPath="yes" />
+                      </Component>
+                    </Directory>
+                  </Directory>
+                </Directory>
+                <Directory Id="DesktopFolder" />
+                <Directory Id="ProgramMenuFolder" />
+              </Directory>
+
+              <Feature Id="MainFeature" Title="Player One" Level="1">
+                <ComponentGroupRef Id="AppFiles" />
+                <ComponentRef Id="ShortcutComponent" />
+              </Feature>
+            </Product>
+          </Wix>
+          '@ | Set-Content -Path product.wxs -Encoding UTF8
+
+          & "$wix\candle.exe" -arch x64 "-dSourceDir=$src" appfiles.wxs product.wxs
+          & "$wix\light.exe" -out "out\Player-One-Windows-7-x64.msi" appfiles.wixobj product.wixobj
+          if (!(Test-Path "out\Player-One-Windows-7-x64.msi")) { throw "MSI was not created" }
+
       - uses: actions/upload-artifact@v4
         with:
           name: Player-One-Windows-7-x64
           path: out/Player-One-Windows-7-x64.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Player-One-Windows-7-x64-MSI
+          path: out/Player-One-Windows-7-x64.msi
           if-no-files-found: error
