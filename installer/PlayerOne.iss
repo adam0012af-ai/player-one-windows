@@ -1,5 +1,5 @@
 #define MyAppName "Player One"
-#define MyAppVersion "1.2.1"
+#define MyAppVersion "1.2.2"
 #define MyAppExeName "PlayerOne.exe"
 
 [Setup]
