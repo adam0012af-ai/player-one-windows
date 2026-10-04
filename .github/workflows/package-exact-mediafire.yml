@@ -1,6 +1,11 @@
 name: Package exact MediaFire PlayerOne.exe
 
 on:
+  push:
+    branches:
+      - packaging/exact-mediafire-84mb
+    paths:
+      - '.github/workflows/package-exact-mediafire.yml'
   workflow_dispatch:
 
 jobs:
