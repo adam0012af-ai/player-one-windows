@@ -1,12 +1,12 @@
 #define MyAppName "Player One"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.2.1"
 #define MyAppExeName "PlayerOne.exe"
 
 [Setup]
 AppId={{B29E7898-0F74-4C2B-98EF-4D132C819026}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-DefaultDirName={autopf}\Player One
+DefaultDirName={localappdata}\Programs\Player One
 DefaultGroupName=Player One
 OutputDir=..\artifacts\installer
 OutputBaseFilename=Player-One-Setup
@@ -17,6 +17,8 @@ SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 WizardStyle=modern
+PrivilegesRequired=lowest
+UseSetupLdr=no
 
 [Files]
 Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
