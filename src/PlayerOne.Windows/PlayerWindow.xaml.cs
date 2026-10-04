@@ -85,7 +85,7 @@ public partial class PlayerWindow : System.Windows.Window
         if (item.Kind == "live" && adv.StreamingFormat != "auto")
         {
             var wanted = adv.StreamingFormat == "hls" ? ".m3u8" : ".ts";
-            candidates = candidates.OrderByDescending(x => x.Contains(wanted,StringComparison.OrdinalIgnoreCase)).ToList();
+            candidates = candidates.OrderByDescending(x => x.IndexOf(wanted,StringComparison.OrdinalIgnoreCase) >= 0).ToList();
         }
         liveCandidate = 0;
         PlayCandidate();
@@ -207,7 +207,7 @@ public partial class PlayerWindow : System.Windows.Window
 
     void Seek(long delta)
     {
-        if (item.Kind != "live" && mp.Length > 0) mp.Time = Math.Clamp(mp.Time + delta,0,mp.Length);
+        if (item.Kind != "live" && mp.Length > 0) mp.Time = Math.Min(mp.Length,Math.Max(0,mp.Time + delta));
         ShowOverlay();
     }
 
