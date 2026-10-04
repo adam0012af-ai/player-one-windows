@@ -1,0 +1,58 @@
+name: Inspect exact Codex setup payload
+
+on:
+  push:
+    branches:
+      - packaging/exact-mediafire-84mb
+    paths:
+      - '.github/workflows/inspect-exact-setup.yml'
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact MediaFire setup
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re, html, urllib.request
+          page_url='https://www.mediafire.com/file/6tdmforfh4922dt/PlayerOne.exe/file'
+          req=urllib.request.Request(page_url,headers={'User-Agent':'Mozilla/5.0'})
+          data=urllib.request.urlopen(req).read().decode('utf-8','ignore')
+          m=re.search(r'id="downloadButton"[^>]*href="([^"]+)"',data,re.I) or re.search(r'href="([^"]+)"[^>]*id="downloadButton"',data,re.I)
+          if not m: raise SystemExit('direct link not found')
+          direct=html.unescape(m.group(1))
+          req=urllib.request.Request(direct,headers={'User-Agent':'Mozilla/5.0'})
+          with urllib.request.urlopen(req) as r, open('PlayerOne-Setup-Exact.exe','wb') as f:
+              f.write(r.read())
+          PY
+          sha256sum PlayerOne-Setup-Exact.exe
+          stat -c '%s' PlayerOne-Setup-Exact.exe
+
+      - name: Install innoextract
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y innoextract file binutils
+
+      - name: Extract payload
+        run: |
+          mkdir -p extracted
+          innoextract -d extracted PlayerOne-Setup-Exact.exe
+          echo "==== FILES ===="
+          find extracted -maxdepth 5 -type f -printf '%p|%s bytes\n' | sort | head -300
+          echo "==== PE FILES ===="
+          while IFS= read -r -d '' f; do
+            case "$f" in
+              *.exe|*.dll) echo "--- $f"; file "$f"; objdump -x "$f" 2>/dev/null | grep -E 'MajorOSystemVersion|MinorOSystemVersion|MajorSubsystemVersion|MinorSubsystemVersion|CLR Runtime Header' | head -10 || true ;;
+            esac
+          done < <(find extracted -type f -print0)
+
+      - name: Upload extracted payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Player-One-Exact-Extracted
+          path: extracted/
+          if-no-files-found: error
