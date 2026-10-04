@@ -1,0 +1,126 @@
+name: Package exact MediaFire PlayerOne.exe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download exact Codex build from MediaFire
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force payload | Out-Null
+          $pageUrl = 'https://www.mediafire.com/file/6tdmforfh4922dt/PlayerOne.exe/file'
+          $headers = @{ 'User-Agent' = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36' }
+          $page = Invoke-WebRequest -Uri $pageUrl -UseBasicParsing -Headers $headers
+          $m = [regex]::Match($page.Content, 'id="downloadButton"[^>]*href="([^"]+)"', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+          if (-not $m.Success) {
+            $m = [regex]::Match($page.Content, 'href="([^"]+)"[^>]*id="downloadButton"', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+          }
+          if (-not $m.Success) { throw 'Could not resolve MediaFire direct download URL' }
+          $direct = [System.Net.WebUtility]::HtmlDecode($m.Groups[1].Value)
+          Invoke-WebRequest -Uri $direct -OutFile 'payload\PlayerOne.exe' -UseBasicParsing -Headers $headers
+
+      - name: Verify exact uploaded build
+        shell: pwsh
+        run: |
+          $file = Get-Item 'payload\PlayerOne.exe'
+          $hash = (Get-FileHash 'payload\PlayerOne.exe' -Algorithm SHA256).Hash.ToLowerInvariant()
+          Write-Host "Size: $($file.Length) bytes"
+          Write-Host "SHA256: $hash"
+          if ($file.Length -ne 84308992) { throw "Unexpected size: $($file.Length)" }
+          if ($hash -ne 'a59abc5ba8ef37a7c9fc69ab31974e6103841d406ff4fc68b06c9fe8abdd7217') { throw "Unexpected SHA256: $hash" }
+
+      - name: Build exact portable ZIP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          Compress-Archive -Path 'payload\PlayerOne.exe' -DestinationPath 'out\Player-One-Exact-Portable.zip' -Force
+
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix
+          wix --version
+
+      - name: Create MSI source
+        shell: pwsh
+        run: |
+          @'
+          <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+            <Package
+              Name="Player One"
+              Manufacturer="T4K Studio"
+              Version="1.2.2"
+              UpgradeCode="B29E7898-0F74-4C2B-98EF-4D132C819026"
+              Scope="perUser">
+              <MajorUpgrade DowngradeErrorMessage="A newer version of Player One is already installed." />
+              <MediaTemplate EmbedCab="yes" />
+
+              <StandardDirectory Id="LocalAppDataFolder">
+                <Directory Id="ProgramsDir" Name="Programs">
+                  <Directory Id="INSTALLFOLDER" Name="Player One">
+                    <Component Id="MainExecutable" Guid="*">
+                      <File Id="PlayerOneExe" Source="payload\PlayerOne.exe" KeyPath="yes">
+                        <Shortcut Id="DesktopShortcut"
+                                  Directory="DesktopFolder"
+                                  Name="Player One"
+                                  WorkingDirectory="INSTALLFOLDER"
+                                  Advertise="no" />
+                        <Shortcut Id="StartMenuShortcut"
+                                  Directory="ProgramMenuFolder"
+                                  Name="Player One"
+                                  WorkingDirectory="INSTALLFOLDER"
+                                  Advertise="no" />
+                      </File>
+                      <RegistryValue Root="HKCU"
+                                     Key="Software\T4K Studio\Player One"
+                                     Name="Installed"
+                                     Type="integer"
+                                     Value="1" />
+                    </Component>
+                  </Directory>
+                </Directory>
+              </StandardDirectory>
+
+              <StandardDirectory Id="DesktopFolder" />
+              <StandardDirectory Id="ProgramMenuFolder" />
+
+              <Feature Id="MainFeature" Title="Player One" Level="1">
+                <ComponentRef Id="MainExecutable" />
+              </Feature>
+            </Package>
+          </Wix>
+          '@ | Set-Content -Path 'PlayerOneExact.wxs' -Encoding UTF8
+
+      - name: Build MSI installer
+        shell: pwsh
+        run: |
+          wix build 'PlayerOneExact.wxs' -arch x86 -o 'out\Player-One-Setup-Exact.msi'
+          if (!(Test-Path 'out\Player-One-Setup-Exact.msi')) { throw 'MSI was not created' }
+
+      - name: Verify MSI and payload artifacts
+        shell: pwsh
+        run: |
+          Get-ChildItem out | Format-Table Name,Length
+          $hash = (Get-FileHash 'payload\PlayerOne.exe' -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne 'a59abc5ba8ef37a7c9fc69ab31974e6103841d406ff4fc68b06c9fe8abdd7217') { throw 'Payload hash changed' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Player-One-Exact-Portable
+          path: out/Player-One-Exact-Portable.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Player-One-Exact-MSI-Setup
+          path: out/Player-One-Setup-Exact.msi
+          if-no-files-found: error
