@@ -1,23 +1,86 @@
 name: Windows parity build
 on:
   push:
-    branches: [windows/android-parity-clean]
+    branches:
+      - fix/windows-parity-input-catalog-performance-v2
+    paths:
+      - 'src/**'
+      - 'installer/**'
+      - '.github/workflows/windows-parity-build.yml'
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Install packaging tools
+        shell: pwsh
+        run: |
+          choco install imagemagick innosetup -y --no-progress
+          $magick = (Get-Command magick.exe -ErrorAction SilentlyContinue).Source
+          if (-not $magick) {
+            $magick = Get-ChildItem "$env:ProgramFiles\ImageMagick-*\magick.exe" | Select-Object -First 1 -ExpandProperty FullName
+          }
+          & $magick "src\PlayerOne.Windows\Assets\player-one-icon.webp" -define icon:auto-resize=256,128,64,48,32,16 "src\PlayerOne.Windows\Assets\player-one.ico"
+
       - name: Restore
-        run: dotnet restore src/PlayerOne.Windows/PlayerOne.Windows.csproj
+        run: dotnet restore PlayerOne.Windows.sln
+
       - name: Build
-        run: dotnet build src/PlayerOne.Windows/PlayerOne.Windows.csproj -c Release --no-restore
-      - name: Publish
-        run: dotnet publish src/PlayerOne.Windows/PlayerOne.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+        run: dotnet build PlayerOne.Windows.sln -c Release --no-restore
+
+      - name: Publish folder-based portable
+        shell: pwsh
+        run: |
+          dotnet publish src\PlayerOne.Windows\PlayerOne.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -o artifacts\publish
+          if (!(Test-Path artifacts\publish\PlayerOne.exe)) { throw "PlayerOne.exe missing after publish" }
+
+      - name: Package portable ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts\publish\* -DestinationPath artifacts\Player-One-Windows-Portable.zip -Force
+
+      - name: Build temp-safe installer
+        shell: pwsh
+        run: |
+          $iscc = @(
+            "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) {
+            $iscc = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
+          }
+          if (-not $iscc) { throw "ISCC.exe not found" }
+          & $iscc installer\PlayerOne.iss
+          if (!(Test-Path artifacts\installer\Player-One-Setup.exe)) { throw "Installer EXE missing" }
+
+      - name: Package installer files
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts\installer\* -DestinationPath artifacts\Player-One-Windows-Setup.zip -Force
+
+      - name: Verify packages
+        shell: pwsh
+        run: |
+          Get-Item artifacts\Player-One-Windows-Portable.zip | Format-List Name,Length
+          Get-ChildItem artifacts\installer | Format-Table Name,Length
+          Get-Item artifacts\Player-One-Windows-Setup.zip | Format-List Name,Length
+
       - uses: actions/upload-artifact@v4
         with:
-          name: Player-One-Windows-Portable
-          path: publish/
+          name: Player-One-Windows-Portable-1.2.1
+          path: artifacts/Player-One-Windows-Portable.zip
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Player-One-Windows-Setup-1.2.1
+          path: artifacts/Player-One-Windows-Setup.zip
+          if-no-files-found: error
