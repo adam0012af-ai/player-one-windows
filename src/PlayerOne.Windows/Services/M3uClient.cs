@@ -17,8 +17,8 @@ public sealed class M3uClient
 
         using var response = await Http.SendAsync(req,HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        using var reader = new StreamReader(stream, bufferSize: 64 * 1024);
+        using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true, 64 * 1024);
 
         var output = new List<XtreamItem>();
         var groupOrder = new Dictionary<string,int>(StringComparer.OrdinalIgnoreCase);
@@ -42,7 +42,7 @@ public sealed class M3uClient
 
             if (line.StartsWith("#EXTGRP:",StringComparison.OrdinalIgnoreCase))
             {
-                group = line[(line.IndexOf(':') + 1)..].Trim();
+                group = line.Substring(line.IndexOf(':') + 1).Trim();
                 continue;
             }
 
@@ -91,7 +91,7 @@ public sealed class M3uClient
     static string AfterComma(string s)
     {
         var i = s.IndexOf(',');
-        return i >= 0 ? s[(i + 1)..].Trim() : "Channel";
+        return i >= 0 ? s.Substring(i + 1).Trim() : "Channel";
     }
 
     static string? Attr(string s,string key)
@@ -104,11 +104,11 @@ public sealed class M3uClient
         if (s[i] == '"')
         {
             var e = s.IndexOf('"',i + 1);
-            return e > i ? s[(i + 1)..e].Trim() : null;
+            return e > i ? s.Substring(i + 1, e - i - 1).Trim() : null;
         }
         var end = s.IndexOfAny(new[] { ' ', ',' },i);
         if (end < 0) end = s.Length;
-        return s[i..end].Trim('"','\'');
+        return s.Substring(i, end - i).Trim('"','\'');
     }
 
     // Keep the same classification rules as the current Android catalog.
